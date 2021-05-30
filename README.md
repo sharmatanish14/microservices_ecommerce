@@ -1,11 +1,14 @@
 # microservices_ecommerce
 
+Get the eureka server at localhost:8761
+
 if server.port=0 spring initialize application at random port
 Allow to run multiple instances of application in Intellij
 
 1. vault server -dev
 2. vault kv put secret/order-service @order-service.json
-3. vault kv get secret/order-service
+3. vault kv put secret/product-service @product-service.json
+4. vault kv get secret/order-service
 
 Change spring.cloud.vault.token property in product-service and order-service as per your machine
 

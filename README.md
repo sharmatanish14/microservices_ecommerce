@@ -18,3 +18,6 @@ To run rabbit mq on docker run below command
  docker run -d -p 5672:5672 -p 15672:15672 --name my-rabbit rabbitmq:3-management
  
  You can access RabbitMQ dashboard at http://localhost:15672 user username and password as guest
+
+
+To resolve html login form from resource server first hit the localhost:8080 and after successful login pass new header Cookie: SESSION=session_id in postman header

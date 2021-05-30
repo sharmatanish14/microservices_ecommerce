@@ -1,5 +1,7 @@
 # microservices_ecommerce
 
+Get the eureka server at localhost:8761
+
 if server.port=0 spring initialize application at random port
 Allow to run multiple instances of application in Intellij
 

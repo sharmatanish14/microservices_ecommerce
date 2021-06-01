@@ -22,3 +22,22 @@ To run rabbit mq on docker run below command
  Keycloak start: standalone.bat -Djboss.http.port=8180
 
 To resolve html login form from resource server first hit the localhost:8080 and after successful login pass new header Cookie: SESSION=session_id in postman header
+
+
+
+
+
+For viewing dashboard:
+1. Vault : http://localhost:8200
+2. Eureka server : http://localhost:8761
+3. RabbitMQ: http://localhost:15672
+4. Keycloak : http://localhost:8180
+ 
+ 
+ Open application in below order :
+  1. configuration-server
+  2. discovery-server
+  3. api-gateway-service
+  4. order-service
+  5. product-service
+  6. inventory-service

@@ -9,9 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreaker;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 @RestController
@@ -24,27 +26,32 @@ public class OrderController {
     private final InventoryClient inventoryClient;
     private final Resilience4JCircuitBreakerFactory resilience4JCircuitBreakerFactory;
     private final StreamBridge streamBridge;
+    private final ExecutorService traceableExecutorService;
+
 
     @PostMapping
-    public String placeOrder(@RequestBody OrderDto orderDto){
-
-        Resilience4JCircuitBreaker circuitBreaker = resilience4JCircuitBreakerFactory.create("inventory");
-        Supplier<Boolean> booleanSupplier =()->orderDto.getOrderLineItemsList().stream().allMatch(orderLineItem -> inventoryClient.checkStock(orderLineItem.getSkuCode()));
-        Boolean allProductInStock = circuitBreaker.run(booleanSupplier, throwable -> handleErrorCase());
+    public String placeOrder(@RequestBody OrderDto orderDto) {
+        resilience4JCircuitBreakerFactory.configureExecutorService(traceableExecutorService);
         System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@  Order request received");
+        Resilience4JCircuitBreaker circuitBreaker = resilience4JCircuitBreakerFactory.create("inventory");
+        Supplier<Boolean> booleanSupplier = () -> orderDto.getOrderLineItemsList().stream().allMatch(orderLineItem -> {
+            log.info("Making call to inventory service for sku code {}", orderLineItem.getSkuCode());
+            return inventoryClient.checkStock(orderLineItem.getSkuCode());
+        });
+        Boolean allProductInStock = circuitBreaker.run(booleanSupplier, throwable -> handleErrorCase());
 
 
-        if(allProductInStock){
-            Order order=new Order();
+        if (allProductInStock) {
+            Order order = new Order();
             order.setOrderNumber(UUID.randomUUID().toString());
             order.setOrderLineItems(orderDto.getOrderLineItemsList());
 
             orderRepository.save(order);
 
-            log.info("Sending order details to notification service : "+order.getId());
-            streamBridge.send("notificationEventsSupplier-out-0",order.getId());
+            log.info("Sending order details with order ID {} to notification service ", order.getId());
+            streamBridge.send("notificationEventsSupplier-out-0", MessageBuilder.withPayload(order.getId()));
             return "order place successfully";
-        }else{
+        } else {
             return "order failed please try again";
         }
 
@@ -55,12 +62,12 @@ public class OrderController {
     }
 
     @GetMapping
-    public String test(){
+    public String test() {
         return "API test";
     }
 
     @PostMapping("/test")
-    public String testPost(){
+    public String testPost() {
         return "Post API is working";
     }
 }

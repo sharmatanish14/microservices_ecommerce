@@ -19,5 +19,6 @@ To run rabbit mq on docker run below command
  
  You can access RabbitMQ dashboard at http://localhost:15672 user username and password as guest
 
+ Keycloak start: standalone.bat -Djboss.http.port=8180
 
 To resolve html login form from resource server first hit the localhost:8080 and after successful login pass new header Cookie: SESSION=session_id in postman header

@@ -5,8 +5,10 @@ import com.learning.orderservice.dto.OrderDto;
 import com.learning.orderservice.model.Order;
 import com.learning.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreaker;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -15,12 +17,13 @@ import java.util.function.Supplier;
 @RestController
 @RequestMapping("/api/order")
 @RequiredArgsConstructor
+@Slf4j
 public class OrderController {
 
     private final OrderRepository orderRepository;
     private final InventoryClient inventoryClient;
     private final Resilience4JCircuitBreakerFactory resilience4JCircuitBreakerFactory;
-    
+    private final StreamBridge streamBridge;
 
     @PostMapping
     public String placeOrder(@RequestBody OrderDto orderDto){
@@ -38,6 +41,8 @@ public class OrderController {
 
             orderRepository.save(order);
 
+            log.info("Sending order details to notification service : "+order.getId());
+            streamBridge.send("notificationEventsSupplier-out-0",order.getId());
             return "order place successfully";
         }else{
             return "order failed please try again";

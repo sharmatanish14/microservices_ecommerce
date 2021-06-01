@@ -12,6 +12,9 @@ import reactor.core.publisher.Mono;
 @SpringBootApplication
 @EnableEurekaClient
 @RestController
+
+
+
 public class ApiGatewayServiceApplication {
 
 	public static void main(String[] args) {
